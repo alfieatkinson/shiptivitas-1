@@ -33,6 +33,23 @@ export default class Board extends React.Component {
     });
   }
 
+  onDrop(el, target, source, sibling) {
+    const cardId = el.getAttribute('data-id');
+    const newStatus = target.parentElement.getAttribute('data-status');
+    const clients = this.state.clients;
+
+    // Update the status of the card
+    Object.keys(clients).forEach(status => {
+      clients[status] = clients[status].filter(client => client.id !== cardId);
+    });
+    clients[newStatus].push({
+      ...clients[newStatus].find(client => client.id === cardId),
+      status: newStatus,
+    });
+
+    this.setState({ clients });
+  }
+
   getClients() {
     return [
       ['1','Stark, White and Abbott','Cloned Optimal Architecture', 'in-progress'],
