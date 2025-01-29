@@ -110,9 +110,9 @@ export default class Board extends React.Component {
       status: companyDetails[3],
     }));
   }
-  renderSwimlane(name, status, clients, ref) {
+  renderSwimlane(name, clients, ref) {
     return (
-      <Swimlane name={name} status={status} clients={clients} dragulaRef={ref} onDrop={this.onDrop.bind(this)}/>
+      <Swimlane name={name} clients={clients} dragulaRef={ref} onDrop={this.onDrop.bind(this)}/>
     );
   }
 
@@ -122,13 +122,13 @@ export default class Board extends React.Component {
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-4">
-              {this.renderSwimlane('Backlog', 'backlog', this.state.clients.backlog, this.swimlanes.backlog)}
+              {this.renderSwimlane('Backlog', this.state.clients.backlog, this.swimlanes.backlog)}
             </div>
             <div className="col-md-4">
-              {this.renderSwimlane('In Progress', 'in-progress', this.state.clients.inProgress, this.swimlanes.inProgress)}
+              {this.renderSwimlane('In Progress', this.state.clients.inProgress, this.swimlanes.inProgress)}
             </div>
             <div className="col-md-4">
-              {this.renderSwimlane('Complete', 'complete', this.state.clients.complete, this.swimlanes.complete)}
+              {this.renderSwimlane('Complete', this.state.clients.complete, this.swimlanes.complete)}
             </div>
           </div>
         </div>
