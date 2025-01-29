@@ -29,46 +29,12 @@ export default class Board extends React.Component {
       this.swimlanes.complete.current,
     ]);
     drake.on('drop', (el, target, source, sibling) => {
-      this.onDrop(el, target, source, sibling);
+      this.updateClient(el, target, source, sibling);
     });
   }
 
-  onDrop(el, target, source, sibling) {
-    const cardId = el.getAttribute('data-id');
-    const newStatus = target.parentElement.getAttribute('data-status');
-    const clients = { ...this.state.clients };
-
-    // Map statuses to client keys
-    const statusMap = {
-      'backlog': 'backlog',
-      'in-progress': 'inProgress',
-      'complete': 'complete',
-    };
-
-    const newStatusKey = statusMap[newStatus];
-
-    // Remove the client from the previous status list
-    Object.keys(clients).forEach(status => {
-      clients[status] = clients[status].filter(client => client.id !== cardId);
-    });
-
-    // Find the client and update its status
-    const movedClient = this.getClients().find(client => client.id === cardId);
-
-    // Add the client to the new status list at the correct position
-    const newClients = [...clients[newStatusKey]];
-    const siblingId = sibling ? sibling.getAttribute('data-id') : null;
-    const siblingIndex = siblingId ? newClients.findIndex(client => client.id === siblingId) : -1;
-
-    if (siblingIndex === -1) {
-      newClients.push({ ...movedClient, status: newStatus });
-    } else {
-      newClients.splice(siblingIndex, 0, { ...movedClient, status: newStatus });
-    }
-
-    clients[newStatusKey] = newClients;
-
-    this.setState({ clients });
+  componentWillUnmount() {
+    this.drake.remove();
   }
 
   getClients() {
