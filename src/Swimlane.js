@@ -3,6 +3,13 @@ import Card from './Card';
 import './Swimlane.css';
 
 export default class Swimlane extends React.Component {
+  componentDidMount() {
+    const drake = Dragula([this.props.dragulaRef.current]);
+    drake.on('drop', (el, target, source, sibling) => {
+      this.props.onDrop(el, target, source, sibling);
+    });
+  }
+
   render() {
     const cards = this.props.clients.map(client => {
       return (
