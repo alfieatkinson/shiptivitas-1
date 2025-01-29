@@ -55,8 +55,18 @@ export default class Board extends React.Component {
     // Find the client and update its status
     const movedClient = this.getClients().find(client => client.id === cardId);
 
-    // Add the client to the new status list
-    clients[newStatusKey].push({ ...movedClient, status: newStatus });
+    // Add the client to the new status list at the correct position
+    const newClients = [...clients[newStatusKey]];
+    const siblingId = sibling ? sibling.getAttribute('data-id') : null;
+    const siblingIndex = siblingId ? newClients.findIndex(client => client.id === siblingId) : -1;
+
+    if (siblingIndex === -1) {
+      newClients.push({ ...movedClient, status: newStatus });
+    } else {
+      newClients.splice(siblingIndex, 0, { ...movedClient, status: newStatus });
+    }
+
+    clients[newStatusKey] = newClients;
 
     this.setState({ clients });
   }
