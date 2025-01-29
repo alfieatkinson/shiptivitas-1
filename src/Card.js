@@ -2,6 +2,10 @@ import React from 'react';
 import './Card.css';
 
 export default class Card extends React.Component {
+  onDrop() {
+    this.props.onDrop(this.props.id, this.props.status);
+  }
+
   render() {
     let className = ['Card'];
     if (this.props.status === 'backlog') {
