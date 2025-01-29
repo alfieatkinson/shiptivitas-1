@@ -10,6 +10,12 @@ export default class Swimlane extends React.Component {
     });
   }
 
+  onDrop(el, target, source, sibling) {
+    const cardId = el.getAttribute('data-id');
+    const newStatus = target.parentElement.getAttribute('data-status');
+    this.props.onDrop(cardId, newStatus);
+  }
+
   render() {
     const cards = this.props.clients.map(client => {
       return (
