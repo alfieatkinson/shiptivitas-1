@@ -36,16 +36,27 @@ export default class Board extends React.Component {
   onDrop(el, target, source, sibling) {
     const cardId = el.getAttribute('data-id');
     const newStatus = target.parentElement.getAttribute('data-status');
-    const clients = this.state.clients;
+    const clients = { ...this.state.clients };
 
-    // Update the status of the card
+    // Map statuses to client keys
+    const statusMap = {
+      'backlog': 'backlog',
+      'in-progress': 'inProgress',
+      'complete': 'complete',
+    };
+
+    const newStatusKey = statusMap[newStatus];
+
+    // Remove the client from the previous status list
     Object.keys(clients).forEach(status => {
       clients[status] = clients[status].filter(client => client.id !== cardId);
     });
-    clients[newStatus].push({
-      ...clients[newStatus].find(client => client.id === cardId),
-      status: newStatus,
-    });
+
+    // Find the client and update its status
+    const movedClient = this.getClients().find(client => client.id === cardId);
+
+    // Add the client to the new status list
+    clients[newStatusKey].push({ ...movedClient, status: newStatus });
 
     this.setState({ clients });
   }
@@ -79,9 +90,9 @@ export default class Board extends React.Component {
       status: companyDetails[3],
     }));
   }
-  renderSwimlane(name, clients, ref) {
+  renderSwimlane(name, status, clients, ref) {
     return (
-      <Swimlane name={name} clients={clients} dragulaRef={ref} onDrop={this.onDrop.bind(this)}/>
+      <Swimlane name={name} status={status} clients={clients} dragulaRef={ref} onDrop={this.onDrop.bind(this)}/>
     );
   }
 
@@ -91,13 +102,13 @@ export default class Board extends React.Component {
         <div className="container-fluid">
           <div className="row">
             <div className="col-md-4">
-              {this.renderSwimlane('Backlog', this.state.clients.backlog, this.swimlanes.backlog)}
+              {this.renderSwimlane('Backlog', 'backlog', this.state.clients.backlog, this.swimlanes.backlog)}
             </div>
             <div className="col-md-4">
-              {this.renderSwimlane('In Progress', this.state.clients.inProgress, this.swimlanes.inProgress)}
+              {this.renderSwimlane('In Progress', 'in-progress', this.state.clients.inProgress, this.swimlanes.inProgress)}
             </div>
             <div className="col-md-4">
-              {this.renderSwimlane('Complete', this.state.clients.complete, this.swimlanes.complete)}
+              {this.renderSwimlane('Complete', 'complete', this.state.clients.complete, this.swimlanes.complete)}
             </div>
           </div>
         </div>
