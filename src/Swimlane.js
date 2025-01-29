@@ -1,4 +1,5 @@
 import React from 'react';
+import Dragula from 'dragula';
 import Card from './Card';
 import './Swimlane.css';
 
