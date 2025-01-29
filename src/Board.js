@@ -112,7 +112,7 @@ export default class Board extends React.Component {
   }
   renderSwimlane(name, clients, ref) {
     return (
-      <Swimlane name={name} clients={clients} dragulaRef={ref} onDrop={this.onDrop.bind(this)}/>
+      <Swimlane name={name} clients={clients} dragulaRef={ref} />
     );
   }
 
