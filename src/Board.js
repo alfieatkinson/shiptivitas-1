@@ -37,6 +37,50 @@ export default class Board extends React.Component {
     this.drake.remove();
   }
 
+  updateClient(el, target, source, sibling) {
+    // Revert DOM changes from Dragula
+    this.drake.cancel(true);
+
+    // Find the swimlane that the card was dropped into
+    let targetSwimlane = null;
+    if (target === this.swimlanes.backlog.current) {
+      targetSwimlane = 'backlog';
+    } else if (target === this.swimlanes.inProgress.current) {
+      targetSwimlane = 'in-progress';
+    } else if (target === this.swimlanes.complete.current) {
+      targetSwimlane = 'complete';
+    }
+
+    // Create a new clients array
+    const clientsList = [
+      ...this.state.clients.backlog,
+      ...this.state.clients.inProgress,
+      ...this.state.clients.complete,
+    ];
+    
+    const clientThatMoved = clientsList.find(client => client.id === el.dataset.id);
+    const clientThatMovedClone = {
+      ...clientThatMoved,
+      status: targetSwimlane,
+    };
+
+    // Remove the client from the source swimlane
+    const updatedClients = clientsList.filter(client => client.id !== clientThatMovedClone.id);
+
+    // Place the client in the target swimlane just before the sibling client
+    const index = updatedClients.findIndex(client => sibling && client.id === sibling.dataset.id);
+    updatedClients.splice(index === -1 ? updatedClients.length : index, 0, clientThatMovedClone);
+
+    // Update React state
+    this.setState({
+      clients: {
+        backlog: updatedClients.filter(client => !client.status || client.status === 'backlog'),
+        inProgress: updatedClients.filter(client => client.status && client.status === 'in-progress'),
+        complete: updatedClients.filter(client => client.status && client.status === 'complete'),
+      }
+    });
+  }
+
   getClients() {
     return [
       ['1','Stark, White and Abbott','Cloned Optimal Architecture', 'backlog'],
