@@ -23,7 +23,7 @@ export default class Board extends React.Component {
   }
 
   getClients() {
-    fetch('/api/v1/clients') // Fetching from the backend
+    fetch('http://localhost:3001/api/v1/clients') // Fetching from the backend
       .then(res => res.json())
       .then(clients => {
         this.setState({
@@ -121,7 +121,7 @@ export default class Board extends React.Component {
     });
 
     // Send update to the backend
-    fetch('/api/v1/clients/${updatedClient.id}', {
+    fetch('http://localhost:3001/api/v1/clients/${updatedClient.id}', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
