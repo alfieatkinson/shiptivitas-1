@@ -84,55 +84,72 @@ export default class Board extends React.Component {
   updateClient(el, target, _, sibling) {
     // Reverting DOM changes from Dragula
     this.drake.cancel(true);
-
-    // Find out which swimlane the Card was moved to
-    let targetSwimlane = 'backlog';
-    if (target === this.swimlanes.inProgress.current) {
-      targetSwimlane = 'in-progress';
+  
+    // Define a mapping between swimlane keys and status values
+    const swimlaneToStatus = {
+      backlog: 'backlog',
+      inProgress: 'in-progress',
+      complete: 'complete',
+    };
+  
+    const statusToSwimlane = {
+      backlog: 'backlog',
+      'in-progress': 'inProgress',
+      complete: 'complete',
+    };
+  
+    // Find out which swimlane the Card was moved to (status in backend)
+    let targetSwimlaneStatus = null;
+    if (target === this.swimlanes.backlog.current) {
+      targetSwimlaneStatus = swimlaneToStatus.backlog;
+    } else if (target === this.swimlanes.inProgress.current) {
+      targetSwimlaneStatus = swimlaneToStatus.inProgress;
     } else if (target === this.swimlanes.complete.current) {
-      targetSwimlane = 'complete';
+      targetSwimlaneStatus = swimlaneToStatus.complete;
     }
-
-    // Find out which swimlane the Card was moved from
+  
+    // Find out which swimlane the Card was moved from (status in backend)
+    let sourceSwimlaneStatus = null;
     if (this.swimlanes.backlog.current.contains(el)) {
-      sourceSwimlane = 'backlog';
+      sourceSwimlaneStatus = swimlaneToStatus.backlog;
     } else if (this.swimlanes.inProgress.current.contains(el)) {
-      sourceSwimlane = 'in-progress';
+      sourceSwimlaneStatus = swimlaneToStatus.inProgress;
     } else if (this.swimlanes.complete.current.contains(el)) {
-      sourceSwimlane = 'complete';
+      sourceSwimlaneStatus = swimlaneToStatus.complete;
     }
-
-    // Create a new clients array
-    const clientsList = [
-      ...this.state.clients.backlog,
-      ...this.state.clients.inProgress,
-      ...this.state.clients.complete,
-    ];
-
-    const clientThatMoved = clientsList.find(client => client.id === Number(el.dataset.id));
-
+  
+    console.log(`Moved from ${sourceSwimlaneStatus} to ${targetSwimlaneStatus}`);
+  
+    // Create a copy of the clients in both swimlanes
+    const sourceClients = [...this.state.clients[statusToSwimlane[sourceSwimlaneStatus]]];
+    const targetClients = [...this.state.clients[statusToSwimlane[targetSwimlaneStatus]]];
+  
+    const clientThatMoved = sourceClients.find(client => client.id === Number(el.dataset.id));
+  
     const clientThatMovedClone = {
       ...clientThatMoved,
-      status: targetSwimlane,
+      status: targetSwimlaneStatus, // Set the status correctly
     };
-
-    // Remove ClientThatMoved from the clientsList
-    const updatedClients = clientsList.filter(client => client.id !== clientThatMovedClone.id);
-
-    console.log(clientThatMovedClone);
-
+  
+    // Remove ClientThatMoved from the source swimlane
+    const updatedSourceClients = sourceClients.filter(client => client.id !== clientThatMovedClone.id);
+  
+    // Add ClientThatMoved to the target swimlane
+    targetClients.push(clientThatMovedClone);
+  
     // Sort clients by priority (ascending)
-    updatedClients.sort((a, b) => a.priority - b.priority);
-
-    // Update React state to reflect changes
-    this.setState({
+    updatedSourceClients.sort((a, b) => a.priority - b.priority);
+    targetClients.sort((a, b) => a.priority - b.priority);
+  
+    // Update React state to reflect changes in both swimlanes
+    this.setState(prevState => ({
       clients: {
-        backlog: updatedClients.filter(client => !client.status || client.status === 'backlog'),
-        inProgress: updatedClients.filter(client => client.status && client.status === 'in-progress'),
-        complete: updatedClients.filter(client => client.status && client.status === 'complete'),
+        ...prevState.clients,
+        [statusToSwimlane[sourceSwimlaneStatus]]: updatedSourceClients,
+        [statusToSwimlane[targetSwimlaneStatus]]: targetClients,
       }
-    });
-
+    }));
+  
     // Send update to the backend
     fetch(`http://localhost:3001/api/v1/clients/${clientThatMovedClone.id}`, {
       method: 'PUT',
@@ -140,7 +157,7 @@ export default class Board extends React.Component {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        status: targetSwimlane,
+        status: targetSwimlaneStatus, // Use the correct status for the backend
         priority: clientThatMovedClone.priority,
       }),
     }).catch(err => console.error('Failed to update client: ', err));
