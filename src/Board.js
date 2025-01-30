@@ -34,7 +34,7 @@ export default class Board extends React.Component {
           }
         });
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error('Failed to fetch clients: ', err));
   }
 
   renderSwimlane(name, clients, ref) {
