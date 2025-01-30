@@ -118,8 +118,6 @@ export default class Board extends React.Component {
       sourceSwimlaneStatus = swimlaneToStatus.complete;
     }
   
-    console.log(`Moved from ${sourceSwimlaneStatus} to ${targetSwimlaneStatus}`);
-  
     // Create a copy of the clients in both swimlanes
     const sourceClients = [...this.state.clients[statusToSwimlane[sourceSwimlaneStatus]]];
     const targetClients = [...this.state.clients[statusToSwimlane[targetSwimlaneStatus]]];
@@ -133,35 +131,41 @@ export default class Board extends React.Component {
   
     // Remove ClientThatMoved from the source swimlane
     const updatedSourceClients = sourceClients.filter(client => client.id !== clientThatMovedClone.id);
+
+    let updatedTargetClients = targetClients;
+    if (sourceSwimlaneStatus === targetSwimlaneStatus) {
+      // If the card was moved within the same swimlane, also remove from the target swimlane
+      updatedTargetClients = targetClients.filter(client => client.id !== clientThatMovedClone.id);
+    }
   
     // Insert ClientThatMoved into the target swimlane at the correct position
     if (sibling) {
       // If the card was dropped before another card (sibling exists), set the correct priority
-      const siblingIndex = targetClients.findIndex(client => client.id === Number(sibling.dataset.id));
-      targetClients.splice(siblingIndex, 0, clientThatMovedClone);
+      const siblingIndex = updatedTargetClients.findIndex(client => client.id === Number(sibling.dataset.id));
+      updatedTargetClients.splice(siblingIndex, 0, clientThatMovedClone);
     } else {
       // If no sibling (card dropped at the end), add to the end of the list
-      targetClients.push(clientThatMovedClone);
+      updatedTargetClients.push(clientThatMovedClone);
     }
 
     // Update priorities for both the source and target swimlanes based on the new order
     updatedSourceClients.forEach((client, index) => {
       client.priority = index + 1; // Update priority based on position
     });
-    targetClients.forEach((client, index) => {
+    updatedTargetClients.forEach((client, index) => {
       client.priority = index + 1; // Update priority based on position
     });
   
     // Sort clients by priority (ascending)
     updatedSourceClients.sort((a, b) => a.priority - b.priority);
-    targetClients.sort((a, b) => a.priority - b.priority);
+    updatedTargetClients.sort((a, b) => a.priority - b.priority);
   
     // Update React state to reflect changes in both swimlanes
     this.setState(prevState => ({
       clients: {
         ...prevState.clients,
         [statusToSwimlane[sourceSwimlaneStatus]]: updatedSourceClients,
-        [statusToSwimlane[targetSwimlaneStatus]]: targetClients,
+        [statusToSwimlane[targetSwimlaneStatus]]: updatedTargetClients,
       }
     }));
   
