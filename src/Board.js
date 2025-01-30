@@ -82,6 +82,7 @@ export default class Board extends React.Component {
   updateClient(el, target, _, sibling) {
     // Reverting DOM changes from Dragula
     this.drake.cancel(true);
+
     // Find out which swimlane the Card was moved to
     let targetSwimlane = 'backlog';
     if (target === this.swimlanes.inProgress.current) {
@@ -89,22 +90,27 @@ export default class Board extends React.Component {
     } else if (target === this.swimlanes.complete.current) {
       targetSwimlane = 'complete';
     }
+
     // Create a new clients array
     const clientsList = [
       ...this.state.clients.backlog,
       ...this.state.clients.inProgress,
       ...this.state.clients.complete,
     ];
+
     const clientThatMoved = clientsList.find(client => client.id === el.dataset.id);
     const clientThatMovedClone = {
       ...clientThatMoved,
       status: targetSwimlane,
     };
+
     // Remove ClientThatMoved from the clientsList
     const updatedClients = clientsList.filter(client => client.id !== clientThatMovedClone.id);
+
     // Place ClientThatMoved just before the sibling client, keeping the order
     const index = updatedClients.findIndex(client => sibling && client.id === sibling.dataset.id);
     updatedClients.splice(index === -1 ? updatedClients.length : index , 0, clientThatMovedClone);
+
     // Update React state to reflect changes
     this.setState({
       clients: {
@@ -113,5 +119,17 @@ export default class Board extends React.Component {
         complete: updatedClients.filter(client => client.status && client.status === 'complete'),
       }
     });
+
+    // Send update to the backend
+    fetch('/api/v1/clients/${updatedClient.id}', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        status: targetSwimlane,
+        priority: index === -1 ? updatedClients.length : index + 1,
+      }),
+    }).catch(err => console.error('Failed to update client: ', err));
   }
 }
