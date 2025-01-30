@@ -93,6 +93,15 @@ export default class Board extends React.Component {
       targetSwimlane = 'complete';
     }
 
+    // Find out which swimlane the Card was moved from
+    if (this.swimlanes.backlog.current.contains(el)) {
+      sourceSwimlane = 'backlog';
+    } else if (this.swimlanes.inProgress.current.contains(el)) {
+      sourceSwimlane = 'in-progress';
+    } else if (this.swimlanes.complete.current.contains(el)) {
+      sourceSwimlane = 'complete';
+    }
+
     // Create a new clients array
     const clientsList = [
       ...this.state.clients.backlog,
@@ -109,32 +118,6 @@ export default class Board extends React.Component {
 
     // Remove ClientThatMoved from the clientsList
     const updatedClients = clientsList.filter(client => client.id !== clientThatMovedClone.id);
-
-    console.log(clientThatMovedClone);
-
-    // Get the sibling's priority (if it exists)
-    let siblingPriority = null;
-    if (sibling) {
-      const siblingClient = updatedClients.find(client => client.id === Number(sibling.dataset.id));
-      siblingPriority = siblingClient ? siblingClient.priority : null;
-    }
-
-    // Calculate the new priority for the moved client
-    if (siblingPriority !== null) {
-      // If there's a sibling, the client moves to the position before the sibling
-      clientThatMovedClone.priority = siblingPriority;
-      updatedClients.forEach(client => {
-        if (client.priority >= clientThatMovedClone.priority) {
-          client.priority += 1;
-        }
-      });
-    } else {
-      // If there's no sibling, the client moves to the last position in the swimlane
-      clientThatMovedClone.priority = updatedClients.length;
-    }
-
-    // Insert the moved client into the updatedClients array
-    updatedClients.push(clientThatMovedClone);
 
     console.log(clientThatMovedClone);
 
