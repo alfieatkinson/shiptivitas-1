@@ -97,7 +97,8 @@ export default class Board extends React.Component {
       ...this.state.clients.complete,
     ];
 
-    const clientThatMoved = clientsList.find(client => client.id === el.dataset.id);
+    const clientThatMoved = clientsList.find(client => client.id === Number(el.dataset.id));
+
     const clientThatMovedClone = {
       ...clientThatMoved,
       status: targetSwimlane,
@@ -120,7 +121,7 @@ export default class Board extends React.Component {
     });
 
     // Send update to the backend
-    fetch('http://localhost:3001/api/v1/clients/${updatedClient.id}', {
+    fetch(`http://localhost:3001/api/v1/clients/${clientThatMovedClone.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
