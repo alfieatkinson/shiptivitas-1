@@ -64,6 +64,8 @@ export default class Board extends React.Component {
   }
 
   componentDidMount() {
+    this.fetchClients();
+
     this.drake = Dragula([
       this.swimlanes.backlog.current,
       this.swimlanes.inProgress.current,
@@ -71,12 +73,12 @@ export default class Board extends React.Component {
     ]);
     this.drake.on('drop', (el, target, source, sibling) => this.updateClient(el, target, source, sibling));
   }
+
   componentWillUnmount() {
     this.drake.remove();
   }
-  /**
-   * Change the status of client when a Card is moved
-   */
+
+  // Change the status of client when a Card is moved
   updateClient(el, target, _, sibling) {
     // Reverting DOM changes from Dragula
     this.drake.cancel(true);
