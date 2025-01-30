@@ -66,6 +66,9 @@ export default class Board extends React.Component {
     fetch('http://localhost:3001/api/v1/clients') // Fetching from the backend
       .then(res => res.json())
       .then(clients => {
+        // Sort clients by priority before setting state
+        clients.sort((a, b) => a.priority - b.priority);
+
         this.setState({
           clients: {
             backlog: clients.filter(client => !client.status || client.status === 'backlog'),
@@ -107,9 +110,36 @@ export default class Board extends React.Component {
     // Remove ClientThatMoved from the clientsList
     const updatedClients = clientsList.filter(client => client.id !== clientThatMovedClone.id);
 
-    // Place ClientThatMoved just before the sibling client, keeping the order
-    const index = updatedClients.findIndex(client => sibling && client.id === sibling.dataset.id);
-    updatedClients.splice(index === -1 ? updatedClients.length : index , 0, clientThatMovedClone);
+    console.log(clientThatMovedClone);
+
+    // Get the sibling's priority (if it exists)
+    let siblingPriority = null;
+    if (sibling) {
+      const siblingClient = updatedClients.find(client => client.id === Number(sibling.dataset.id));
+      siblingPriority = siblingClient ? siblingClient.priority : null;
+    }
+
+    // Calculate the new priority for the moved client
+    if (siblingPriority !== null) {
+      // If there's a sibling, the client moves to the position before the sibling
+      clientThatMovedClone.priority = siblingPriority;
+      updatedClients.forEach(client => {
+        if (client.priority >= clientThatMovedClone.priority) {
+          client.priority += 1;
+        }
+      });
+    } else {
+      // If there's no sibling, the client moves to the last position in the swimlane
+      clientThatMovedClone.priority = updatedClients.length;
+    }
+
+    // Insert the moved client into the updatedClients array
+    updatedClients.push(clientThatMovedClone);
+
+    console.log(clientThatMovedClone);
+
+    // Sort clients by priority (ascending)
+    updatedClients.sort((a, b) => a.priority - b.priority);
 
     // Update React state to reflect changes
     this.setState({
@@ -128,7 +158,7 @@ export default class Board extends React.Component {
       },
       body: JSON.stringify({
         status: targetSwimlane,
-        priority: index === -1 ? updatedClients.length : index + 1,
+        priority: clientThatMovedClone.priority,
       }),
     }).catch(err => console.error('Failed to update client: ', err));
   }
