@@ -134,8 +134,23 @@ export default class Board extends React.Component {
     // Remove ClientThatMoved from the source swimlane
     const updatedSourceClients = sourceClients.filter(client => client.id !== clientThatMovedClone.id);
   
-    // Add ClientThatMoved to the target swimlane
-    targetClients.push(clientThatMovedClone);
+    // Insert ClientThatMoved into the target swimlane at the correct position
+    if (sibling) {
+      // If the card was dropped before another card (sibling exists), set the correct priority
+      const siblingIndex = targetClients.findIndex(client => client.id === Number(sibling.dataset.id));
+      targetClients.splice(siblingIndex, 0, clientThatMovedClone);
+    } else {
+      // If no sibling (card dropped at the end), add to the end of the list
+      targetClients.push(clientThatMovedClone);
+    }
+
+    // Update priorities for both the source and target swimlanes based on the new order
+    updatedSourceClients.forEach((client, index) => {
+      client.priority = index + 1; // Update priority based on position
+    });
+    targetClients.forEach((client, index) => {
+      client.priority = index + 1; // Update priority based on position
+    });
   
     // Sort clients by priority (ascending)
     updatedSourceClients.sort((a, b) => a.priority - b.priority);
